@@ -6,7 +6,9 @@ import glob
 
 
 def init_db(filename: str, path_to_images: str, matcher : FeatureMatcher, mapping_file : str = 'data.txt', des_dataset: str = 'DatasetDescriptors', kp_dataset: str = 'DatasetKeypoints'):
+
     reset_db(mapping_file)
+
     with h5py.File(filename, 'w') as f:
         if not des_dataset in f.keys():
             des_set = f.create_dataset(des_dataset, (500000, 128), maxshape=(None, 128))
