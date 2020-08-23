@@ -6,6 +6,27 @@ import glob
 
 
 def init_db(filename: str, path_to_images: str, matcher : FeatureMatcher, mapping_file : str = 'data.txt', des_dataset: str = 'DatasetDescriptors', kp_dataset: str = 'DatasetKeypoints'):
+    """Initializes h5py file or overwrites the existing one, resets image mapping
+
+        Creates new h5py file with given name via filename parameter. This file will always have two datasets, descriptor dataset
+        named via des_dataset parameter and keypoint dataset named via kp_dataset parameter. Mapping file must be given via mapping_file parameter.
+        Method then detects and computes descriptors and keypoints of all images in path_to_images directory. This is done using cv2 detector passed by matcher parameter
+
+        Parameters
+        ----------
+        filename : str
+            Name of the new h5py file
+        path_to_images : str
+            Path to directory with images
+        matcher : FeatureMatcher
+            FeatureMatcher class object with cv2 detector and cv2 matcher
+        mapping_file : str , optional
+            Name of the mapping file containing json with images and positions of their keypoints and descriptors in datasets
+        des_dataset :str , optional
+            Name of the dataset containing descriptors, default is DatasetDescriptors
+        kp_dataset : str, optional
+            Name of the dataset containing keypoints, default is DatasetKeypoints
+    """
 
     reset_db(mapping_file)
 
@@ -47,6 +68,29 @@ def init_db(filename: str, path_to_images: str, matcher : FeatureMatcher, mappin
 
 
 def update_db(filename: str, path_to_images: str, matcher : FeatureMatcher, mapping_file : str = 'data.txt', des_dataset: str = 'DatasetDescriptors', kp_dataset: str = 'DatasetKeypoints'):
+    """Updates existing h5py file with new image descriptors and keypoints
+
+        Updates existing h5py file to contain new images added to path_to_images directory. This file will always have two datasets, descriptor dataset
+        named via des_dataset parameter and keypoint dataset named via kp_dataset parameter. Datasets wil lbe created if not already contained in h5py file.
+        Mapping file must be given via mapping_file parameter. Method then detects and computes descriptors and keypoints of new images in path_to_images directory.
+        This is done using cv2 detector passed by matcher parameter
+
+        Parameters
+        ----------
+        filename : str
+            Name of the existing h5py file
+        path_to_images : str
+            Path to directory with images
+        matcher : FeatureMatcher
+            FeatureMatcher class object with cv2 detector and cv2 matcher
+        mapping_file : str , optional
+            Name of the mapping file containing json with images and positions of their keypoints and descriptors in datasets
+        des_dataset :str , optional
+            Name of the dataset containing descriptors, default is DatasetDescriptors
+        kp_dataset : str, optional
+            Name of the dataset containing keypoints, default is DatasetKeypoints
+    """
+
     with h5py.File(filename, 'a') as f:
         if not des_dataset in f.keys():
             des_set = f.create_dataset(des_dataset, (500000, 128), maxshape=(None, 128))
@@ -85,6 +129,23 @@ def update_db(filename: str, path_to_images: str, matcher : FeatureMatcher, mapp
 
 
 def get_des(filename: 'str', image_path: 'str', mapping_file : str = 'data.txt', des_dataset: str = 'DatasetDescriptors'):
+    """Looks into existing h5py file and returns descriptors for given image
+
+        This method looks into h5py file given by filename parameter and looks for descriptors in dataset des_dataset.
+        It gets boundaries of image descriptors from mapping_file json for image given by parameter image_path.
+
+        Parameters
+        ----------
+        filename : str
+            Name of existing h5py file
+        image_path : str
+            Specifies the path to the image
+        mapping_file : str , optional
+            Specifies the name of the mapping file containing boundaries of descriptors for given image
+        des_dataset : str , optional
+            Specifies the dataset that will be searched for the descriptors
+    """
+
     with h5py.File(filename, 'r') as f:
         with open(mapping_file) as jfile:
             mapping = json.load(jfile)
@@ -94,6 +155,23 @@ def get_des(filename: 'str', image_path: 'str', mapping_file : str = 'data.txt',
 
 
 def get_kp(filename: 'str', image_path: 'str', mapping_file : str = 'data.txt', kp_dataset: str = 'DatasetKeypoints'):
+    """Looks into existing h5py file and returns keypoints for given image
+
+        This method looks into h5py file given by filename parameter and looks for keypoints in dataset kp_dataset.
+        It gets boundaries of image keypoints from mapping_file json for image given by parameter image_path.
+
+        Parameters
+        ----------
+        filename : str
+            Name of existing h5py file
+        image_path : str
+            Specifies the path to the image
+        mapping_file : str , optional
+            Specifies the name of the mapping file containing boundaries of keypoints for given image
+        des_dataset : str , optional
+            Specifies the dataset that will be searched for the keypoints
+    """
+
     with h5py.File(filename, 'r') as f:
         with open(mapping_file) as jfile:
             mapping = json.load(jfile)
@@ -108,6 +186,8 @@ def get_kp(filename: 'str', image_path: 'str', mapping_file : str = 'data.txt', 
 
 
 def reset_db(mapping_file : str):
+    """This method empties the mapping file"""
+
     with open(mapping_file, 'w') as out:
             mapping = {}
             json.dump(mapping, out)

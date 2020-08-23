@@ -6,26 +6,103 @@ import glob
 
 
 class FeatureMatcher:
+    """
+    A class used to combine cv2 detector and cv2 matcher
+
+    ...
+
+    Attributes
+    ----------
+    detector
+        a cv2 detector object
+    matcher
+        a cv2 DescriptorMatcher object
+
+    Methods
+    -------
+    __init__(self, detector, matcher)
+        A constructor method for FeatureMatcher class
+    """
     def __init__(self, detector, matcher):
+        """
+        Parameters
+        ----------
+        detector
+            a cv2 detector object
+        matcher
+            a cv2 DescriptorMatcher object
+        """
         self.detector = detector
         self.matcher = matcher
 
-    # type annotations
     def detect(self, img: np.ndarray, mask=None):
+        """Uses detector to detect keypoint and descriptors for image
+
+            Uses class attribute detector to compute and return keypoints and descriptors for image given by numpy ndarray img
+
+            Parameters
+            ----------
+            img : np.ndarray
+                Numpy array of given image
+            mask : optional
+                Mask specifying where to look for keypoints, default is None
+        """
+
         kp, des = self.detector.detectAndCompute(img, mask)
         return kp, des
 
     def match(self, img1: np.ndarray, img2: np.ndarray):
+        """This method uses the detect method to get keypoints and descriptors for given images, it then matches them using matcher knnMatch method
+
+            Method calculates descriptors for images img1 and img2 given by numpy ndarrays. It then takes those descriptors and uses knnMatch method of matcher attribute.
+            This method returns k best matches of descriptors for given images. k is always set to 2.
+
+            Parameters
+            ----------
+            img1 : np.ndarray
+                Numpy array of the first image
+            img2 : np.ndarray
+                Numpy array of the second image
+        """
+
         kp1, des1 = self.detect(img1)
         kp2, des2 = self.detect(img2)
         matches = self.matcher.knnMatch(des1.astype(np.float32), des2.astype(np.float32), k=2)
         return matches
 
     def match(self, des1: np.ndarray, des2: np.ndarray):
+        """This is an overloaded method, it differs from the above method by parameters it accepts
+
+            Method takes two sets of descriptors des1 and des2 and uses matcher knnMatch method to compare them and find k best matches. k is set to 2.
+            Parameters
+            ----------
+            des1 : np.ndarray
+                the first set of descriptors
+            des2 : np.ndarray
+                the second set of descriptors
+        """
         matches = self.matcher.knnMatch(des1.astype(np.float32), des2.astype(np.float32), k=2)
         return matches
 
     def visualise(self, matches, img1: np.ndarray, kp1, img2: np.ndarray, kp2, title=''):
+        """This method visualises matched keypoints between two given images
+
+            Parameters
+            ----------
+            matches
+                Takes matched descriptors of two images given by match method
+            img1 : np.ndarray
+                Numpy array of the first image
+            img2 : np.ndarray
+                Numpy array of the second image
+            kp1
+                Set of keypoints for the first image
+            kp2
+                Set of keypoints for the second image
+            title : , optional
+                Title of image, default title is an empty string ''
+        """
+
         good = []
         for m, n in matches:
             if m.distance < 0.7 * n.distance:
